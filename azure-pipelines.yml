@@ -1,0 +1,51 @@
+trigger:
+- master
+
+pool:
+  name: vmachine
+
+variables:
+  buildConfiguration: 'Release'
+  apiKey: '2f5ae96c-b558-4c7b-a590-a501ae1c3f6c'
+  secretKey: '2f5ae96c-b558-4c7b-a590-a501ae1c3f6c'
+
+steps:
+- task: DotNetCoreCLI@2
+  displayName: 'Restaurar paquetes'
+  inputs:
+    command: 'restore'
+    projects: '**/*.csproj'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Compilar'
+  inputs:
+    command: 'build'
+    projects: '**/*.csproj'
+    arguments: '--configuration $(buildConfiguration)'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Publicar'
+  inputs:
+    command: 'publish'
+    projects: '**/*.csproj'
+    arguments: '--configuration $(buildConfiguration) --output $(System.ArtifactsDirectory)/publish'
+
+- task: PublishBuildArtifact@2
+  displayName: 'Publicar artefacto de compilación'
+  inputs:
+    PathtoPublish: '$(System.ArtifactsDirectory)/publish'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
+
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: 'Desplegar plantilla de Azure Resource Manager'
+  inputs:
+    deploymentScope: 'ResourceGroup'
+    azureResourceManagerConnection: 'Azure DevOps'
+    subscriptionName: 'Azure DevOps'
+    resourceGroupName: 'DevOpsTcsMicro'
+    location: 'West US'
+    templateLocation: 'Linked artifact'
+    csmFile: '$(System.ArtifactsDirectory)/publish/azuredeploy.json'
+    csmParametersFile: '$(System.ArtifactsDirectory)/publish/azuredeploy.parameters.json'
+    overrideParameters: '-apiKey $(apiKey) -secretKey $(secretKey)'
