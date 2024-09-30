@@ -1,0 +1,8 @@
+﻿################################################################################
+# Este archivo .gitignore ha sido creado automáticamente por Microsoft(R) Visual Studio.
+################################################################################
+
+/DevOpsTcsMicro/bin/Debug/net8.0
+/DevOpsTcsMicro/obj
+/DevOpsTcsMicro.Test/bin
+/DevOpsTcsMicro.Test/obj
